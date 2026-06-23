@@ -15,8 +15,22 @@ from datetime import datetime
 
 # 脚本所在目录即为 Git 仓库根目录
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
-# 自动查找 git 路径
-GIT = shutil.which("git") or r"C:\Program Files\Git\bin\git.exe"
+# 自动查找 git 路径 (多级 fallback)
+def _find_git() -> str:
+    """按优先级查找 git: PATH → 标准安装 → PortableGit"""
+    candidates = [
+        shutil.which("git"),
+        r"C:\Program Files\Git\bin\git.exe",
+        r"C:\Program Files (x86)\Git\bin\git.exe",
+        os.path.expandvars(r"%USERPROFILE%\.workbuddy\vendor\PortableGit\mingw64\bin\git.exe"),
+        os.path.expandvars(r"%USERPROFILE%\.workbuddy\vendor\PortableGit\bin\git.exe"),
+    ]
+    for path in candidates:
+        if path and os.path.isfile(path):
+            return path
+    raise FileNotFoundError("找不到 git.exe，请安装 Git for Windows")
+
+GIT = _find_git()
 
 
 def run(cmd: list[str]) -> str:
