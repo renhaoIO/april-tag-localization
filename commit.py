@@ -7,16 +7,25 @@
     python commit.py v1.2.3       # 直接指定版本号
 """
 
+import os
+import shutil
 import subprocess
 import sys
 from datetime import datetime
 
+# 脚本所在目录即为 Git 仓库根目录
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+# 自动查找 git 路径
+GIT = shutil.which("git") or r"C:\Program Files\Git\bin\git.exe"
+
 
 def run(cmd: list[str]) -> str:
-    """执行命令并返回输出"""
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    """执行 git 命令并返回输出"""
+    result = subprocess.run(
+        [GIT] + cmd, capture_output=True, text=True, cwd=REPO_DIR
+    )
     if result.returncode != 0:
-        print(f"❌ 失败: {' '.join(cmd)}\n{result.stderr}")
+        print(f"❌ 失败: git {' '.join(cmd)}\n{result.stderr}")
         sys.exit(1)
     return result.stdout.strip()
 
@@ -32,7 +41,7 @@ def main():
             sys.exit(1)
 
     # 2. 检查是否有改动
-    status = run(["git", "status", "--porcelain"])
+    status = run(["status", "--porcelain"])
     if not status:
         print("ℹ️ 无改动，无需提交")
         return
@@ -50,9 +59,9 @@ def main():
     # 4. 提交 + 推送
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
     msg = f"{version} — {timestamp}"
-    run(["git", "add", "-A"])
-    run(["git", "commit", "-m", msg])
-    run(["git", "push"])
+    run(["add", "-A"])
+    run(["commit", "-m", msg])
+    run(["push"])
 
     print(f"\n✅ 已提交并推送: {msg}")
 
