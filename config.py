@@ -28,7 +28,7 @@ DEFAULT_CAMERA_FPS = 100
 
 
 # ===================== 网络通信默认配置 =====================
-DEFAULT_UDP_IP = "192.168.1.107"
+DEFAULT_UDP_IP = "192.168.1.105"
 """UDP 数据发送目标 IP 地址"""
 
 DEFAULT_UDP_PORT = 9005

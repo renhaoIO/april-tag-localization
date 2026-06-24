@@ -292,7 +292,7 @@ class LowLatencyUDPTransmitter:
                 pose_data = {
                     "type": "robot_position",
                     "pos": [round(x, 4), round(y, 4), round(z, 4)],
-                    "euler": [0.0, 0.0, round(yaw, 4)],
+                    "euler": [0.0, round(yaw, 4), 0.0],
                 }
                 data = json.dumps(pose_data, ensure_ascii=False).encode("utf-8")
             else:
