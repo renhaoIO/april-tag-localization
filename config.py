@@ -91,10 +91,10 @@ WARP_HEIGHT = int((FIELD_SIZE_Z + 2 * MARGIN) * SCALE)
 # }
 # 注意: corner_id 必须是 0/1/2/3，不能是 Tag ID！
 REF_TAG_CONFIG = {
-    8:  {"corner_id": 0, "world_pos": (5.0, 0.0)},    # 左下角 (原点)
-    11: {"corner_id": 1, "world_pos": (0.0, 0.0)},    # 右下角
-    12: {"corner_id": 2, "world_pos": (0.0, 4.0)},    # 右上角
-    6:  {"corner_id": 3, "world_pos": (5.0, 4.0)},    # 左上角
+    11: {"corner_id": 0, "world_pos": (0.0, 0.0)},    # 左下角 (原点)
+    8:  {"corner_id": 1, "world_pos": (5.0, 0.0)},    # 右下角
+    6:  {"corner_id": 2, "world_pos": (5.0, 4.0)},    # 右上角
+    12: {"corner_id": 3, "world_pos": (0.0, 4.0)},    # 左上角
 }
 """场地四角参考 Tag 的 ID 与世界坐标映射"""
 
