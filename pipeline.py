@@ -103,8 +103,8 @@ class KalmanFilter2D:
 
         # 过程噪声协方差 Q
         self.Q = np.eye(6, dtype=np.float32) * process_noise
-        self.Q[2, 2] = 1e-1  # yaw 预测不确定性 ≈ 18°, 允许快速转向
-        self.Q[5, 5] = 1e-1  # vyaw 同理
+        self.Q[2, 2] = 10.0  # yaw 预测不确定性极大, 几乎无平滑, 纯跟踪测量
+        self.Q[5, 5] = 10.0  # vyaw 同理
 
         # 观测噪声协方差 R
         self.R = np.eye(3, dtype=np.float32) * measurement_noise
@@ -417,12 +417,14 @@ def estimate_target_pose(
         dx = world_corners[1][0] - world_corners[0][0]
         dz = world_corners[1][1] - world_corners[0][1]
         car_yaw = np.degrees(np.arctan2(dz, dx))
+        print(f"[YAW_RAW] {car_yaw:.1f}°", end="  ")
     else:
         return last_pose, trail_points
 
     filtered = kf.update(np.array([car_x, car_z, car_yaw]))
     car_x, car_z, car_yaw = filtered
     car_yaw = normalize_angle(car_yaw)
+    print(f"→ KF:{car_yaw:.1f}°")  # debug: 对比 raw vs filtered
 
     trail_points.append((car_x, car_z))
 
