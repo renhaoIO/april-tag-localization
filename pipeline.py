@@ -417,6 +417,9 @@ def estimate_target_pose(
         dx = world_corners[1][0] - world_corners[0][0]
         dz = world_corners[1][1] - world_corners[0][1]
         car_yaw = np.degrees(np.arctan2(dz, dx))
+        car_yaw = (car_yaw + 90.0) % 360.0    # 修正0°方向：Tag本地X轴 → 世界坐标系X轴
+        if car_yaw > 180:
+            car_yaw -= 360
         print(f"[YAW_RAW] {car_yaw:.1f}°", end="  ")
     else:
         return last_pose, trail_points
