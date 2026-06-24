@@ -36,12 +36,17 @@ GIT = _find_git()
 def run(cmd: list[str]) -> str:
     """执行 git 命令并返回输出"""
     result = subprocess.run(
-        [GIT] + cmd, capture_output=True, text=True, cwd=REPO_DIR
+        [GIT] + cmd,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=REPO_DIR,
     )
     if result.returncode != 0:
         print(f"❌ 失败: git {' '.join(cmd)}\n{result.stderr}")
         sys.exit(1)
-    return result.stdout.strip()
+    return (result.stdout or "").strip()
 
 
 def main():
