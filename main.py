@@ -291,36 +291,37 @@ def main():
             target_pose, trail_points = estimate_target_pose(target_obs, H, kf, last_target_pose)
             last_target_pose = target_pose
 
-            if target_pose is not None and udp_tx is not None:  # UDP 异步发送
+            if target_pose is not None:
                 # 坐标系映射: 世界(X=右,Z=前) → 智能车(X=前,Y=右), yaw偏移-90°
-                sm_x, sm_y = target_pose.z, target_pose.x
+                sm_x = target_pose.z
+                sm_y = target_pose.x
                 sm_yaw = normalize_angle(target_pose.yaw_deg - 90.0)
-                success = udp_tx.send(sm_x, CAR_HEIGHT, sm_y, sm_yaw)
-                if not success and frame_count % 30 == 0:
-                    print("⚠️ UDP 队列已满，数据可能丢失")
 
-            if target_pose is not None and json_output.mode != "none":  # JSON 输出
-                sm_x, sm_y = target_pose.z, target_pose.x
-                sm_yaw = normalize_angle(target_pose.yaw_deg - 90.0)
-                json_data = {
-                    "timestamp": time.time(),
-                    "frame": frame_count,
-                    "position": {
-                        "x": round(sm_x, 4),
-                        "y": CAR_HEIGHT,
-                        "z": round(sm_y, 4),
-                    },
-                    "orientation": {
-                        "yaw": round(sm_yaw, 4),
-                        "pitch": 0.0,
-                        "roll": 0.0,
-                    },
-                    "detection": {
-                        "tags_found": len(reference_tags),
-                        "target_tag_id": args.target_tag_id,
-                    },
-                }
-                json_output.output(json_data)
+                if udp_tx is not None:
+                    success = udp_tx.send(sm_x, CAR_HEIGHT, sm_y, sm_yaw)
+                    if not success and frame_count % 30 == 0:
+                        print("⚠️ UDP 队列已满，数据可能丢失")
+
+                if json_output.mode != "none":
+                    json_data = {
+                        "timestamp": time.time(),
+                        "frame": frame_count,
+                        "position": {
+                            "x": round(sm_x, 4),
+                            "y": CAR_HEIGHT,
+                            "z": round(sm_y, 4),
+                        },
+                        "orientation": {
+                            "yaw": round(sm_yaw, 4),
+                            "pitch": 0.0,
+                            "roll": 0.0,
+                        },
+                        "detection": {
+                            "tags_found": len(reference_tags),
+                            "target_tag_id": args.target_tag_id,
+                        },
+                    }
+                    json_output.output(json_data)
 
             if frame_count % display_interval == 0:  # 帧率节流显示
                 udp_stats = udp_tx.get_stats() if udp_tx else {}
