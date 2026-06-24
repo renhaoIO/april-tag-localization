@@ -42,6 +42,7 @@ from config import (
 from datatypes import ReferenceTagInfo, TargetObservation, TargetPose
 from comms import JSONOutputHandler, LowLatencyUDPTransmitter
 from pipeline import KalmanFilter2D, process_markers, compute_homography, estimate_target_pose
+from utils import normalize_angle
 from visualizer import draw_raw_window, draw_warped_window, draw_map_window
 
 
@@ -291,21 +292,26 @@ def main():
             last_target_pose = target_pose
 
             if target_pose is not None and udp_tx is not None:  # UDP 异步发送
-                success = udp_tx.send(target_pose.x, CAR_HEIGHT, target_pose.z, target_pose.yaw_deg)
+                # 坐标系映射: 世界(X=右,Z=前) → 智能车(X=前,Y=右), yaw偏移-90°
+                sm_x, sm_y = target_pose.z, target_pose.x
+                sm_yaw = normalize_angle(target_pose.yaw_deg - 90.0)
+                success = udp_tx.send(sm_x, CAR_HEIGHT, sm_y, sm_yaw)
                 if not success and frame_count % 30 == 0:
                     print("⚠️ UDP 队列已满，数据可能丢失")
 
             if target_pose is not None and json_output.mode != "none":  # JSON 输出
+                sm_x, sm_y = target_pose.z, target_pose.x
+                sm_yaw = normalize_angle(target_pose.yaw_deg - 90.0)
                 json_data = {
                     "timestamp": time.time(),
                     "frame": frame_count,
                     "position": {
-                        "x": round(target_pose.x, 4),
+                        "x": round(sm_x, 4),
                         "y": CAR_HEIGHT,
-                        "z": round(target_pose.z, 4),
+                        "z": round(sm_y, 4),
                     },
                     "orientation": {
-                        "yaw": round(target_pose.yaw_deg, 4),
+                        "yaw": round(sm_yaw, 4),
                         "pitch": 0.0,
                         "roll": 0.0,
                     },
