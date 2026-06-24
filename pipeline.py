@@ -398,19 +398,27 @@ def estimate_target_pose(
         return last_pose, trail_points
 
     cx_px, cy_px = target_obs.center_px
-    fx_px, fy_px = target_obs.front_px
 
     car_pos = pixel_to_world(cx_px, cy_px, H)
     if car_pos is None:
         return last_pose, trail_points
     car_x, car_z = car_pos
 
-    front_pos = pixel_to_world(fx_px, fy_px, H)
-    if front_pos is None:
-        return last_pose, trail_points
-    fx, fz = front_pos
+    # Yaw from 4 tag corners mapped through homography
+    # corner[0]→corner[1] = tag's +X axis, full 0.5m span → 2x better SNR
+    world_corners = []
+    for j in range(4):
+        pos = pixel_to_world(target_obs.corners[j][0], target_obs.corners[j][1], H)
+        if pos is None:
+            break
+        world_corners.append(pos)
 
-    car_yaw = np.degrees(np.arctan2(fz - car_z, fx - car_x))  # atan2(dz, dx)
+    if len(world_corners) == 4:
+        dx = world_corners[1][0] - world_corners[0][0]
+        dz = world_corners[1][1] - world_corners[0][1]
+        car_yaw = np.degrees(np.arctan2(dz, dx))
+    else:
+        return last_pose, trail_points
 
     filtered = kf.update(np.array([car_x, car_z, car_yaw]))
     car_x, car_z, car_yaw = filtered
